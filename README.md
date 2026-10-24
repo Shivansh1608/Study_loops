@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Notes-to-Quiz Generator (NoteWise AI)
 
 A production-grade, AI-powered study companion that converts lecture notes and PDFs into interactive quizzes, flashcards with spaced repetition (SM-2), and revision summaries.
@@ -64,3 +65,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## API Documentation
 Interactive Swagger UI is available at `/docs` when the backend is running.
+=======
+# Study_loops
+Notes to quiz and summary generator.
+>>>>>>> 36a8761a7a149e627800b0af8c51ec893869a671
