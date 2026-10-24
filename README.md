@@ -1,0 +1,66 @@
+# Notes-to-Quiz Generator (NoteWise AI)
+
+A production-grade, AI-powered study companion that converts lecture notes and PDFs into interactive quizzes, flashcards with spaced repetition (SM-2), and revision summaries.
+
+## Tech Stack
+- **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, React Router v6, TanStack Query, Zustand, Axios, Recharts, Lucide Icons.
+- **Backend**: Python 3.11+, FastAPI, Uvicorn, SQLAlchemy 2.0, Alembic, Pydantic v2, PyMuPDF, SlowAPI.
+- **AI Service**: Agnostic multi-provider layer (`services/ai.py`) supporting Google Gemini & Anthropic Claude with strict Pydantic JSON validation and retry policies.
+- **Database**: SQLite (dev) / PostgreSQL (production).
+
+---
+
+## Getting Started
+
+### 1. Prerequisites
+- Node.js (v18+) & npm
+- Python 3.11+
+
+### 2. Backend Setup
+```bash
+cd backend
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+# source .venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8000
+```
+- API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Health check: [http://localhost:8000/health](http://localhost:8000/health)
+
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+| Variable | Description | Default |
+|---|---|---|
+| `DATABASE_URL` | SQLAlchemy connection string | `sqlite:///./notes_quiz.db` |
+| `SECRET_KEY` | JWT signing secret | dev key |
+| `AI_PROVIDER` | AI provider (`gemini` or `claude`) | `gemini` |
+| `GEMINI_API_KEY` | Google Gemini API key | |
+| `ANTHROPIC_API_KEY` | Anthropic Claude API key | |
+| `MAX_UPLOAD_SIZE_MB` | Maximum document upload size | `20` |
+
+### Frontend (`frontend/.env`)
+| Variable | Description | Default |
+|---|---|---|
+| `VITE_API_BASE_URL` | Backend API base URL | `http://localhost:8000` |
+
+---
+
+## API Documentation
+Interactive Swagger UI is available at `/docs` when the backend is running.
