@@ -3,26 +3,22 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchDocument, createQuiz, type DocumentDetail } from '../api/client';
 import {
   Sparkles,
-  HelpCircle,
-  Clock,
   Sliders,
   ArrowLeft,
   Loader2,
-  BrainCircuit,
   FileText,
   ListChecks,
   Target,
   ToggleLeft,
   Shuffle,
-  CheckCircle2,
-  Timer,
+  Timer as TimerIcon,
+  HelpCircle,
 } from 'lucide-react';
 
-type Difficulty = 'easy' | 'medium' | 'hard';
+type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
 type QuestionType = 'mcq' | 'true_false' | 'mixed';
 
-const TIME_LIMITS: { label: string; value: number | null }[] = [
-  { label: 'No Limit', value: null },
+const TIME_LIMITS: { label: string; value: number }[] = [
   { label: '30s', value: 30 },
   { label: '60s', value: 60 },
   { label: '90s', value: 90 },
@@ -30,25 +26,30 @@ const TIME_LIMITS: { label: string; value: number | null }[] = [
 ];
 
 export default function Configure() {
-  const { documentId } = useParams<{ documentId: string }>();
+  const params = useParams<{ id?: string; documentId?: string }>();
+  const docId = params.id || params.documentId;
   const navigate = useNavigate();
 
   const [document, setDocument] = useState<DocumentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [numQuestions, setNumQuestions] = useState<number>(5);
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  // Configuration form state
+  const [numQuestions, setNumQuestions] = useState<number>(10);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [questionType, setQuestionType] = useState<QuestionType>('mcq');
   const [topicFocus, setTopicFocus] = useState('');
-  const [timeLimitSec, setTimeLimitSec] = useState<number | null>(null);
+  const [isTimerEnabled, setIsTimerEnabled] = useState(false);
+  const [timeLimitSec, setTimeLimitSec] = useState<number>(60);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
-      if (!documentId) return;
+      if (!docId) return;
       try {
         setLoading(true);
-        const doc = await fetchDocument(Number(documentId));
+        const doc = await fetchDocument(Number(docId));
         setDocument(doc);
       } catch {
         setError('Failed to load document details.');
@@ -57,22 +58,40 @@ export default function Configure() {
       }
     }
     load();
-  }, [documentId]);
+  }, [docId]);
+
+  // Loading progress text cycling during AI generation
+  useEffect(() => {
+    if (!generating) {
+      setLoadingStep(0);
+      return;
+    }
+    const steps = [
+      'Scanning notes & segmenting core concepts...',
+      'Synthesizing questions & active recall prompts...',
+      'Formulating plausible distractors & answer keys...',
+      'Verifying strict schema & educational explanations...',
+    ];
+    const timer = setInterval(() => {
+      setLoadingStep((prev) => (prev + 1) % steps.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [generating]);
 
   const handleStartQuiz = async () => {
-    if (!documentId) return;
+    if (!docId) return;
     try {
       setGenerating(true);
       setError(null);
       const quiz = await createQuiz(
-        Number(documentId),
+        Number(docId),
         numQuestions,
         difficulty,
         questionType,
         topicFocus.trim() || null,
-        timeLimitSec
+        isTimerEnabled ? timeLimitSec : null
       );
-      navigate(`/quiz/${quiz.id}`);
+      navigate(`/quizzes/${quiz.id}/take`);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to generate quiz. Please try again.');
     } finally {
@@ -80,29 +99,34 @@ export default function Configure() {
     }
   };
 
-  const estimatedMinutes = Math.ceil(numQuestions * (timeLimitSec ? timeLimitSec / 60 : 1.5));
-
   const difficultyOptions = [
     {
       id: 'easy' as Difficulty,
       name: 'Easy Recall',
-      desc: 'Direct definitions, key terms, and explicit facts.',
+      desc: 'Direct definitions, key terms, dates, and explicit facts.',
       badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
       dot: 'bg-emerald-500',
     },
     {
       id: 'medium' as Difficulty,
-      name: 'Conceptual',
-      desc: 'Deeper understanding, mechanism explanation, and application.',
+      name: 'Medium Applied',
+      desc: 'Understanding, conceptual synthesis, and principle application.',
       badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
       dot: 'bg-indigo-500',
     },
     {
       id: 'hard' as Difficulty,
-      name: 'Analytical',
-      desc: 'Multi-step reasoning, subtle nuances, evaluating false statements.',
+      name: 'Hard Analytical',
+      desc: 'Multi-step reasoning, scenario problems, false statement analysis.',
       badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
       dot: 'bg-purple-500',
+    },
+    {
+      id: 'mixed' as Difficulty,
+      name: 'Mixed Levels',
+      desc: 'Balanced distribution: ~30% easy, 50% medium, and 20% hard.',
+      badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+      dot: 'bg-amber-500',
     },
   ];
 
@@ -111,277 +135,269 @@ export default function Configure() {
       id: 'mcq' as QuestionType,
       icon: <ListChecks className="w-5 h-5" />,
       name: 'Multiple Choice',
-      desc: '4 options — one correct answer per question.',
+      desc: '4 options — exactly one correct answer with plausible distractors.',
     },
     {
       id: 'true_false' as QuestionType,
       icon: <ToggleLeft className="w-5 h-5" />,
       name: 'True / False',
-      desc: 'Statement-based questions with True or False answers.',
+      desc: 'Fact-checked statements based solely on your lecture notes.',
     },
     {
       id: 'mixed' as QuestionType,
       icon: <Shuffle className="w-5 h-5" />,
-      name: 'Mixed',
-      desc: 'Blend of MCQ and True/False for variety.',
+      name: 'Mixed Types',
+      desc: 'Blend of standard multiple-choice and true/false questions.',
     },
   ];
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto py-16 flex flex-col items-center justify-center space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-        <p className="text-sm font-medium text-slate-500">Loading document configuration...</p>
+      <div className="max-w-2xl mx-auto py-20 flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-9 h-9 animate-spin text-purple-600" />
+        <p className="text-sm font-semibold text-slate-500">Loading document configuration...</p>
       </div>
     );
   }
 
+  const generationStepMessages = [
+    'Scanning notes & segmenting core concepts...',
+    'Synthesizing questions & active recall prompts...',
+    'Formulating plausible distractors & answer keys...',
+    'Verifying strict schema & educational explanations...',
+  ];
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      {/* Back */}
+      {/* Back button */}
       <button
         onClick={() => navigate('/upload')}
-        className="flex items-center space-x-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+        className="flex items-center space-x-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Documents</span>
       </button>
 
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-2">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold">
-          <BrainCircuit className="w-3.5 h-3.5" />
-          <span>AI Quiz Generator</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900">
-          Configure Your Quiz
-        </h1>
-        {document && (
-          <div className="flex items-center space-x-2 text-xs text-slate-500 pt-1">
-            <FileText className="w-4 h-4 text-purple-600" />
-            <span className="font-semibold text-slate-700">{document.title}</span>
-            <span>•</span>
-            <span>{document.chunks.length} text chunk(s)</span>
+      {/* Header card */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                Quiz Generator
+              </span>
+              <span className="text-xs text-slate-400">•</span>
+              <span className="text-xs text-slate-500 font-medium">Custom Assessment</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900">
+              Configure Your Quiz
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Generating from:{' '}
+              <span className="font-semibold text-slate-700 inline-flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-purple-600 inline" />
+                {document?.title || 'Lecture Document'}
+              </span>{' '}
+              ({document?.page_count || 1} page{(document?.page_count || 1) > 1 ? 's' : ''})
+            </p>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Config form */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-8">
+      {/* Skeleton loading modal when generating */}
+      {generating && (
+        <div className="bg-white rounded-3xl p-8 border border-purple-200 shadow-xl space-y-6 animate-pulse">
+          <div className="flex items-center space-x-3 text-purple-700 font-bold">
+            <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+            <h2 className="text-lg font-heading">
+              {generationStepMessages[loadingStep]}
+            </h2>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 bg-purple-100/70 rounded-full w-3/4" />
+            <div className="h-4 bg-purple-100/50 rounded-full w-5/6" />
+            <div className="h-4 bg-purple-100/30 rounded-full w-2/3" />
+          </div>
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="h-12 bg-slate-100 rounded-xl" />
+            <div className="h-12 bg-slate-100 rounded-xl" />
+          </div>
+          <p className="text-xs text-slate-400 text-center font-medium">
+            AI is analyzing your notes. This usually takes 5–20 seconds.
+          </p>
+        </div>
+      )}
 
-        {/* ── 1. Number of Questions ── */}
-        <div className="space-y-4">
+      {/* Main configuration controls */}
+      <div className={`bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-8 ${generating ? 'hidden' : 'block'}`}>
+        {/* 1. Number of questions slider */}
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+            <label className="text-sm font-bold text-slate-900 flex items-center space-x-2">
               <Sliders className="w-4 h-4 text-purple-600" />
               <span>Number of Questions</span>
             </label>
-            <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-purple-100 text-purple-800">
-              {numQuestions} Qs
+            <span className="font-mono text-base font-extrabold text-purple-700 px-3 py-1 bg-purple-50 border border-purple-200 rounded-xl">
+              {numQuestions} Questions
             </span>
           </div>
+          <input
+            type="range"
+            min={5}
+            max={30}
+            step={1}
+            value={numQuestions}
+            onChange={(e) => setNumQuestions(Number(e.target.value))}
+            className="w-full accent-purple-600 h-2 bg-slate-100 rounded-lg cursor-pointer"
+          />
+          <div className="flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>5 (Quick test)</span>
+            <span>15 (Standard)</span>
+            <span>30 (Full exam)</span>
+          </div>
+        </div>
 
-          {/* Quick-pick buttons */}
-          <div className="grid grid-cols-5 gap-2">
-            {[3, 5, 10, 15, 20].map((cnt) => (
+        <hr className="border-slate-100" />
+
+        {/* 2. Difficulty selector */}
+        <div className="space-y-3">
+          <label className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+            <Target className="w-4 h-4 text-purple-600" />
+            <span>Target Difficulty</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {difficultyOptions.map((opt) => (
               <button
-                key={cnt}
+                key={opt.id}
                 type="button"
-                onClick={() => setNumQuestions(cnt)}
-                className={`py-2.5 rounded-xl text-sm font-bold border-2 transition-all cursor-pointer ${
-                  numQuestions === cnt
-                    ? 'border-purple-600 bg-purple-50 text-purple-700 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                onClick={() => setDifficulty(opt.id)}
+                className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                  difficulty === opt.id
+                    ? 'border-purple-600 bg-purple-50/60 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
-                {cnt}
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-slate-900 text-sm">{opt.name}</span>
+                  <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">{opt.desc}</p>
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Slider */}
-          <div className="space-y-1">
-            <input
-              type="range"
-              min={1}
-              max={50}
-              value={numQuestions}
-              onChange={(e) => setNumQuestions(Number(e.target.value))}
-              className="w-full h-2 rounded-full appearance-none cursor-pointer accent-purple-600 bg-slate-200"
-            />
-            <div className="flex justify-between text-[10px] text-slate-400 font-medium px-0.5">
-              <span>1</span>
-              <span>Custom: {numQuestions}</span>
-              <span>50</span>
+        <hr className="border-slate-100" />
+
+        {/* 3. Question type selector */}
+        <div className="space-y-3">
+          <label className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+            <ListChecks className="w-4 h-4 text-purple-600" />
+            <span>Question Format</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {questionTypeOptions.map((type) => (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => setQuestionType(type.id)}
+                className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                  questionType === type.id
+                    ? 'border-purple-600 bg-purple-50/60 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+              >
+                <div className="flex items-center space-x-2 mb-1.5 text-purple-600">
+                  {type.icon}
+                  <span className="font-bold text-slate-900 text-sm">{type.name}</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">{type.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <hr className="border-slate-100" />
+
+        {/* 4. Timer toggle & configuration */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <TimerIcon className="w-4 h-4 text-purple-600" />
+                <span>Countdown Timer</span>
+              </label>
+              <p className="text-xs text-slate-500">
+                Enforce a per-question time limit with auto-advance on zero.
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsTimerEnabled(!isTimerEnabled)}
+              className={`w-12 h-6 rounded-full transition-colors cursor-pointer relative ${
+                isTimerEnabled ? 'bg-purple-600' : 'bg-slate-200'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform absolute top-0.5 ${
+                  isTimerEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
           </div>
-        </div>
 
-        <hr className="border-slate-100" />
-
-        {/* ── 2. Question Type ── */}
-        <div className="space-y-3">
-          <label className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-            <Target className="w-4 h-4 text-purple-600" />
-            <span>Question Type</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {questionTypeOptions.map((opt) => {
-              const selected = questionType === opt.id;
-              return (
-                <div
-                  key={opt.id}
-                  onClick={() => setQuestionType(opt.id)}
-                  className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                    selected
-                      ? 'border-purple-600 bg-purple-50/50 shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
+          {isTimerEnabled && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {TIME_LIMITS.map((tl) => (
+                <button
+                  key={tl.value}
+                  type="button"
+                  onClick={() => setTimeLimitSec(tl.value)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer ${
+                    timeLimitSec === tl.value
+                      ? 'border-purple-600 bg-purple-50 text-purple-700 shadow-xs'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
                   }`}
                 >
-                  <div className={`mb-2 ${selected ? 'text-purple-600' : 'text-slate-400'}`}>
-                    {opt.icon}
-                  </div>
-                  <p className="text-sm font-bold text-slate-900">{opt.name}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{opt.desc}</p>
-                  {selected && (
-                    <div className="mt-2 flex items-center space-x-1 text-purple-600">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-bold">Selected</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  {tl.label} per question
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <hr className="border-slate-100" />
 
-        {/* ── 3. Difficulty ── */}
-        <div className="space-y-3">
-          <label className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-            <HelpCircle className="w-4 h-4 text-purple-600" />
-            <span>Difficulty Level</span>
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {difficultyOptions.map((opt) => {
-              const isSelected = difficulty === opt.id;
-              return (
-                <div
-                  key={opt.id}
-                  onClick={() => setDifficulty(opt.id)}
-                  className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-purple-600 bg-purple-50/50 shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2 mb-1.5">
-                    <div className={`w-2.5 h-2.5 rounded-full ${opt.dot}`} />
-                    <span className="text-sm font-bold text-slate-900">{opt.name}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${opt.badgeColor}`}>
-                      {opt.id}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">{opt.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <hr className="border-slate-100" />
-
-        {/* ── 4. Topic Focus ── */}
+        {/* 5. Optional Topic Focus */}
         <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-            <Target className="w-4 h-4 text-purple-600" />
-            <span>Topic Focus <span className="text-slate-400 font-normal text-xs ml-1">(optional)</span></span>
+          <label className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+            <HelpCircle className="w-4 h-4 text-purple-600" />
+            <span>Topic Focus (Optional)</span>
           </label>
-          <p className="text-xs text-slate-500">
-            Narrow questions to a specific concept or keyword from your notes (e.g. "Photosynthesis", "Newton's Laws").
-          </p>
           <input
             type="text"
             value={topicFocus}
             onChange={(e) => setTopicFocus(e.target.value)}
-            placeholder="e.g. Krebs cycle, Supply and Demand, World War II..."
+            placeholder="e.g. Cellular Respiration, Chapter 4, Keynesian Economics..."
             maxLength={200}
-            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-purple-500 focus:outline-none text-sm text-slate-800 placeholder-slate-400 transition-colors"
+            className="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-purple-600 focus:outline-none text-sm text-slate-800 placeholder-slate-400 transition-colors"
           />
         </div>
 
-        <hr className="border-slate-100" />
-
-        {/* ── 5. Time Limit per Question ── */}
-        <div className="space-y-3">
-          <label className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-            <Timer className="w-4 h-4 text-purple-600" />
-            <span>Time Limit per Question</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {TIME_LIMITS.map((tl) => (
-              <button
-                key={String(tl.value)}
-                type="button"
-                onClick={() => setTimeLimitSec(tl.value)}
-                className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all cursor-pointer ${
-                  timeLimitSec === tl.value
-                    ? 'border-purple-600 bg-purple-50 text-purple-700 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
-                }`}
-              >
-                {tl.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <hr className="border-slate-100" />
-
-        {/* Estimated time */}
-        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs text-slate-600 font-medium">
-          <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-purple-600" />
-            <span>Estimated completion time:</span>
-          </div>
-          <span className="font-bold text-slate-800">~{estimatedMinutes} min</span>
-        </div>
-
-        {/* Summary pill */}
-        <div className="flex flex-wrap gap-2 text-[11px]">
-          <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 font-semibold">{numQuestions} Questions</span>
-          <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 font-semibold capitalize">{difficulty}</span>
-          <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold capitalize">{questionType.replace('_', '/')}</span>
-          {topicFocus && <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold">📌 {topicFocus}</span>}
-          <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold">
-            {timeLimitSec ? `${timeLimitSec}s / Q` : 'No timer'}
-          </span>
-        </div>
-
         {error && (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
             {error}
           </div>
         )}
 
-        {/* Submit */}
+        {/* Generate button */}
         <button
           onClick={handleStartQuiz}
           disabled={generating}
-          className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white font-extrabold text-sm shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-purple-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {generating ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Generating {questionType === 'true_false' ? 'True/False' : questionType === 'mixed' ? 'Mixed' : 'MCQ'} Quiz...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              <span>Generate Quiz &amp; Begin</span>
-            </>
-          )}
+          <Sparkles className="w-5 h-5" />
+          <span>Generate Quiz &amp; Begin</span>
         </button>
       </div>
     </div>

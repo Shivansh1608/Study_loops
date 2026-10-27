@@ -10,11 +10,13 @@ import Upload from './pages/Upload';
 import Configure from './pages/Configure';
 import Quiz from './pages/Quiz';
 import Results from './pages/Results';
+import MyQuizzes from './pages/MyQuizzes';
 import Flashcards from './pages/Flashcards';
 import Review from './pages/Review';
 import Summary from './pages/Summary';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Landing from './pages/Landing';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,11 +88,15 @@ export default function App() {
       <BrowserRouter>
         <AppLayout>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/quizzes" element={<MyQuizzes />} />
+            <Route path="/documents/:id/quiz/new" element={<Configure />} />
             <Route path="/configure/:documentId" element={<Configure />} />
+            <Route path="/quizzes/:id/take" element={<Quiz />} />
             <Route path="/quiz/:quizId" element={<Quiz />} />
+            <Route path="/attempts/:id" element={<Results />} />
             <Route path="/results/:attemptId" element={<Results />} />
             <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/review" element={<Review />} />

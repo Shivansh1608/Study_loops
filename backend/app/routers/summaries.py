@@ -36,8 +36,8 @@ def generate_document_summary(
     # If an existing summary exists, we can return or overwrite
     existing = db.query(models.Summary).filter(models.Summary.document_id == document.id).first()
 
-    # Use chunks or full document text
-    text_content = document.text[:12000]  # Respect token envelope
+    # Use chunks or full document text — generous limit for thorough summaries
+    text_content = document.text[:30000]  # Allow more content for comprehensive summaries
     prompt = get_summary_prompt(text_content, document.title)
 
     try:
@@ -52,14 +52,19 @@ def generate_document_summary(
         logger.warning(f"AI summary failed, using structured template fallback: {e}")
         # Build clean markdown summary fallback directly from chunks
         sections = []
-        sections.append(f"# {document.title} - Study & Revision Summary\n")
-        sections.append("## Overview\nSynthesized revision guide extracted from lecture notes.\n")
-        sections.append("## Key Concepts\n")
-        for c in document.chunks[:5]:
+        sections.append(f"# {document.title} — Study & Revision Summary\n")
+        sections.append("## 📋 Executive Overview\n")
+        sections.append("This is an auto-generated revision guide extracted from your uploaded lecture notes. "
+                        "For a richer AI-powered summary, please try regenerating.\n")
+        sections.append("## 🔑 Key Concepts\n")
+        for i, c in enumerate(document.chunks[:8], 1):
             words = c.text.split()
-            first_sentence = " ".join(words[:25])
-            sections.append(f"- **Key Point**: {first_sentence}...")
-        sections.append("\n## Essential Formulas & Takeaways\n- Review all definitions and flashcard cues regularly using spaced repetition.")
+            snippet = " ".join(words[:40])
+            sections.append(f"### Point {i}\n{snippet}...\n")
+        sections.append("\n## ⚡ Quick Revision Tips\n")
+        sections.append("- Review all definitions and flashcard cues regularly using spaced repetition.\n")
+        sections.append("- Focus on understanding *why* each concept matters, not just memorizing facts.\n")
+        sections.append("- Try generating a quiz from this document to test your recall.\n")
         markdown_text = "\n".join(sections)
 
     if existing:

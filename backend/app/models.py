@@ -57,9 +57,11 @@ class Question(Base):
     id = Column(Integer, primary_key=True, index=True)
     document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True)
     chunk_id = Column(Integer, ForeignKey("chunks.id", ondelete="CASCADE"), nullable=True, index=True)
+    type = Column(String(30), default="mcq", index=True)  # mcq | true_false | short_answer
     question = Column(Text, nullable=False)
-    options = Column(JSON, nullable=False)  # List of 4 strings
-    correct_index = Column(Integer, nullable=False)
+    options = Column(JSON, nullable=False)  # List of strings
+    correct_index = Column(Integer, nullable=True)
+    correct_answer = Column(Text, nullable=True)
     explanation = Column(Text, nullable=False)
     difficulty = Column(String(20), default="medium", index=True)  # easy, medium, hard
     topic = Column(String(100), default="General", index=True)
@@ -75,9 +77,10 @@ class Quiz(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(255), nullable=True)
     difficulty = Column(String(20), default="medium")
     question_type = Column(String(20), default="mcq")        # mcq | true_false | mixed
-    time_limit_sec = Column(Integer, nullable=True)           # per-question seconds, None = unlimited
+    time_limit_sec = Column(Integer, nullable=True)           # per-question or overall quiz seconds
     num_questions = Column(Integer, default=5)
     created_at = Column(DateTime, default=utc_now)
 
@@ -118,8 +121,10 @@ class AttemptAnswer(Base):
     id = Column(Integer, primary_key=True, index=True)
     attempt_id = Column(Integer, ForeignKey("attempts.id", ondelete="CASCADE"), nullable=False, index=True)
     question_id = Column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), nullable=False, index=True)
-    chosen_index = Column(Integer, nullable=False)
-    is_correct = Column(Boolean, nullable=False)
+    chosen_index = Column(Integer, nullable=True)
+    answer_text = Column(Text, nullable=True)
+    is_correct = Column(Boolean, nullable=False, default=False)
+    time_spent_sec = Column(Integer, default=0)
 
     attempt = relationship("Attempt", back_populates="answers")
     question = relationship("Question")
@@ -155,3 +160,10 @@ class Summary(Base):
 # Indexes
 Index("idx_flashcards_user_due", Flashcard.user_id, Flashcard.due_date)
 Index("idx_quizzes_user_doc", Quiz.user_id, Quiz.document_id)
+Index("idx_quizzes_user_id", Quiz.user_id)
+Index("idx_quizzes_doc_id", Quiz.document_id)
+Index("idx_questions_doc_id", Question.document_id)
+Index("idx_attempts_user_id", Attempt.user_id)
+Index("idx_attempts_quiz_id", Attempt.quiz_id)
+Index("idx_attempt_answers_attempt_id", AttemptAnswer.attempt_id)
+Index("idx_attempt_answers_question_id", AttemptAnswer.question_id)

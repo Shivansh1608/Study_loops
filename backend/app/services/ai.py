@@ -114,18 +114,21 @@ class FallbackMockAdapter(BaseAIAdapter):
             for i, sent in enumerate(sentences[:5]):
                 words = sent.split()
                 key_word = words[0] if words else "Concept"
+                correct_text = f"It describes {sent[:40]} accurately according to the notes."
                 questions.append({
                     "question": f"Based on the notes, what is the core significance of: '{sent[:80]}...'?",
                     "options": [
-                        f"It describes {sent[:40]} accurately according to the notes.",
+                        correct_text,
                         f"It contradicts the established observation of {key_word}.",
                         "It is an unrelated hypothesis not verified in the study notes.",
                         "It applies exclusively to outside unrelated mechanisms."
                     ],
                     "correct_index": 0,
+                    "correct_answer": correct_text,
                     "explanation": f"Grounded directly in the provided text statement: '{sent[:120]}'.",
                     "difficulty": "medium",
-                    "topic": "Key Concepts"
+                    "topic": "Key Concepts",
+                    "type": "mcq"
                 })
             return json.dumps({"questions": questions})
 

@@ -18,6 +18,17 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor to clear invalid token on 401
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('notes_quiz_token');
+    }
+    return Promise.reject(error);
+  }
+);
+
 // API Types
 export interface HealthResponse {
   status: string;
@@ -62,14 +73,17 @@ export interface Question {
   question: string;
   options: string[];
   correct_index?: number;
+  correct_answer?: string;
   explanation?: string;
   difficulty: string;
   topic: string;
+  type?: string;
 }
 
 export interface Quiz {
   id: number;
   document_id: number;
+  title?: string;
   difficulty: string;
   question_type: string;
   time_limit_sec: number | null;
@@ -78,10 +92,26 @@ export interface Quiz {
   questions: Question[];
 }
 
+export interface QuizListItem {
+  id: number;
+  document_id: number;
+  title?: string;
+  difficulty: string;
+  question_type: string;
+  time_limit_sec: number | null;
+  num_questions: number;
+  created_at: string;
+  attempts_count: number;
+  best_score: number | null;
+  best_score_pct: number | null;
+}
+
 export interface AttemptAnswer {
   question_id: number;
-  chosen_index: number;
+  chosen_index?: number | null;
+  answer_text?: string | null;
   is_correct: boolean;
+  time_spent_sec?: number;
   question: Question;
 }
 
@@ -210,14 +240,38 @@ export const createQuiz = async (
   return res.data;
 };
 
+export const fetchQuizzes = async (): Promise<QuizListItem[]> => {
+  const res = await apiClient.get<QuizListItem[]>('/quizzes');
+  return res.data;
+};
+
 export const fetchQuiz = async (quizId: number): Promise<Quiz> => {
   const res = await apiClient.get<Quiz>(`/quizzes/${quizId}`);
   return res.data;
 };
 
+export const deleteQuiz = async (quizId: number): Promise<void> => {
+  await apiClient.delete(`/quizzes/${quizId}`);
+};
+
+export const retryWrongQuiz = async (quizId: number): Promise<Quiz> => {
+  const res = await apiClient.post<Quiz>(`/quizzes/${quizId}/retry-wrong`);
+  return res.data;
+};
+
+export const fetchQuizAttempts = async (quizId: number): Promise<Attempt[]> => {
+  const res = await apiClient.get<Attempt[]>(`/quizzes/${quizId}/attempts`);
+  return res.data;
+};
+
 export const submitQuizAttempt = async (
   quizId: number,
-  answers: { question_id: number; chosen_index: number }[],
+  answers: {
+    question_id: number;
+    chosen_index?: number | null;
+    answer_text?: string | null;
+    time_spent_sec?: number;
+  }[],
   durationSec: number
 ): Promise<Attempt> => {
   const res = await apiClient.post<Attempt>(`/quizzes/${quizId}/attempts`, {

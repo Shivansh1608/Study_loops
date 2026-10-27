@@ -1,13 +1,12 @@
-<<<<<<< HEAD
-# Notes-to-Quiz Generator (NoteWise AI)
+# QuizForge (NoteWise AI / Study Loop)
 
-A production-grade, AI-powered study companion that converts lecture notes and PDFs into interactive quizzes, flashcards with spaced repetition (SM-2), and revision summaries.
+A production-grade, AI-powered study companion that converts lecture notes and PDFs into interactive quizzes, active recall flashcards with spaced repetition (SM-2), and revision summaries.
 
 ## Tech Stack
-- **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, React Router v6, TanStack Query, Zustand, Axios, Recharts, Lucide Icons.
+- **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, React Router v6/v7, TanStack Query, Zustand, Axios, Recharts, Lucide Icons.
 - **Backend**: Python 3.11+, FastAPI, Uvicorn, SQLAlchemy 2.0, Alembic, Pydantic v2, PyMuPDF, SlowAPI.
-- **AI Service**: Agnostic multi-provider layer (`services/ai.py`) supporting Google Gemini & Anthropic Claude with strict Pydantic JSON validation and retry policies.
-- **Database**: SQLite (dev) / PostgreSQL (production).
+- **AI Service**: Agnostic multi-provider layer (`services/ai.py`) supporting Google Gemini & Anthropic Claude with strict Pydantic JSON validation, fallback simulation, and retry policies.
+- **Database**: SQLite (dev) / PostgreSQL (production) with Alembic migrations.
 
 ---
 
@@ -28,6 +27,7 @@ python -m venv .venv
 
 pip install -r requirements.txt
 cp .env.example .env
+alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 - API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
@@ -63,9 +63,18 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## API Documentation
+## API Endpoints Reference
+
+### Quizzes Module
+All endpoints require a valid Bearer JWT and isolate data by user:
+- `POST /documents/{document_id}/quizzes`: Generate and persist a quiz distributed across chunks with deduplication and difficulty rules (`easy`, `medium`, `hard`, `mixed`). Returns questions without correct answers.
+- `GET /quizzes`: List the current user's quizzes with question count, attempt count, and best score.
+- `GET /quizzes/{quiz_id}`: Retrieve a quiz without exposing answers/explanations.
+- `DELETE /quizzes/{quiz_id}`: Delete a quiz and its attempts.
+- `POST /quizzes/{quiz_id}/attempts`: Submit and score answers server-side, storing `time_spent_sec` and answers, returning score, accuracy, and full explanations.
+- `GET /attempts/{attempt_id}`: Retrieve full details of a past attempt.
+- `GET /quizzes/{quiz_id}/attempts`: List all past attempts for a specific quiz.
+- `POST /quizzes/{quiz_id}/retry-wrong`: Generate a new quiz from questions the user got wrong in their previous attempt.
+
+### Interactive Swagger UI
 Interactive Swagger UI is available at `/docs` when the backend is running.
-=======
-# Study_loops
-Notes to quiz and summary generator.
->>>>>>> 36a8761a7a149e627800b0af8c51ec893869a671

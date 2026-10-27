@@ -8,8 +8,7 @@ import {
   Flame, 
   Layers, 
   LogOut, 
-  LogIn,
-  ExternalLink
+  LogIn
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -24,6 +23,7 @@ export function Navbar({ streak = 0, dueCardsCount = 0 }: NavbarProps) {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Upload & Notes', path: '/upload', icon: UploadCloud },
+    { name: 'My Quizzes', path: '/quizzes', icon: BookOpen },
     { 
       name: 'Flashcards', 
       path: '/flashcards', 
@@ -32,7 +32,7 @@ export function Navbar({ streak = 0, dueCardsCount = 0 }: NavbarProps) {
     { 
       name: 'Spaced Review', 
       path: '/review', 
-      icon: BookOpen,
+      icon: Sparkles,
       badge: dueCardsCount > 0 ? dueCardsCount : undefined 
     },
   ];
@@ -95,16 +95,6 @@ export function Navbar({ streak = 0, dueCardsCount = 0 }: NavbarProps) {
             <span>{streak} Day Streak</span>
           </div>
 
-          {/* API Docs link */}
-          <a
-            href="http://localhost:8000/docs"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden sm:flex items-center space-x-1 text-xs font-semibold text-slate-500 hover:text-purple-600 px-2 py-1 transition-colors"
-          >
-            <span>Docs</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
 
           <div className="h-4 w-px bg-slate-200" />
 

@@ -51,47 +51,81 @@ class DocumentDetail(BaseModel):
 # Question & Quiz Schemas
 class QuestionAI(BaseModel):
     question: str
-    options: List[str] = Field(description="Exactly 4 unique options")
-    correct_index: int = Field(ge=0, le=3, description="0-indexed position of correct answer")
+    options: List[str] = Field(description="Plausible options (4 for MCQ, 2 for True/False)")
+    correct_index: Optional[int] = Field(default=None, description="0-indexed position of correct answer")
+    correct_answer: Optional[str] = Field(default=None, description="Text of correct answer")
     explanation: str = Field(description="Explanation grounded strictly in provided notes")
     difficulty: str = Field(default="medium", description="easy, medium, or hard")
     topic: str = Field(default="General", description="Subject or subtopic")
+    type: str = Field(default="mcq", description="mcq, true_false, or short_answer")
 
 class AIQuizGenerationResponse(BaseModel):
     questions: List[QuestionAI]
 
-class QuestionOut(BaseModel):
+class QuestionClientOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     question: str
     options: List[str]
-    correct_index: Optional[int] = None  # Hidden during active quiz taking if preferred
+    difficulty: str
+    topic: str
+    type: str = "mcq"
+
+class QuestionReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    question: str
+    options: List[str]
+    correct_index: Optional[int] = None
+    correct_answer: Optional[str] = None
     explanation: Optional[str] = None
     difficulty: str
     topic: str
+    type: str = "mcq"
+
+# Keep QuestionOut as an alias for backwards compatibility
+QuestionOut = QuestionReviewOut
 
 class CreateQuizRequest(BaseModel):
     num_questions: int = Field(default=5, ge=1, le=50)
-    difficulty: str = Field(default="medium", pattern="^(easy|medium|hard)$")
+    difficulty: str = Field(default="medium", pattern="^(easy|medium|hard|mixed)$")
     question_type: str = Field(default="mcq", pattern="^(mcq|true_false|mixed)$")
     topic_focus: Optional[str] = Field(default=None, max_length=200)
-    time_limit_sec: Optional[int] = Field(default=None, ge=15, le=300)
+    topics: Optional[List[str]] = Field(default=None)
+    time_limit_sec: Optional[int] = Field(default=None, ge=15, le=3600)
 
 class QuizOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     document_id: int
+    title: Optional[str] = None
     difficulty: str
     question_type: str
-    time_limit_sec: Optional[int]
+    time_limit_sec: Optional[int] = None
     num_questions: int
     created_at: datetime
-    questions: List[QuestionOut] = []
+    questions: List[QuestionClientOut] = []
+
+class QuizListItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    document_id: int
+    title: Optional[str] = None
+    difficulty: str
+    question_type: str
+    time_limit_sec: Optional[int] = None
+    num_questions: int
+    created_at: datetime
+    attempts_count: int = 0
+    best_score: Optional[int] = None
+    best_score_pct: Optional[float] = None
 
 # Attempt Schemas
 class AnswerSubmission(BaseModel):
     question_id: int
-    chosen_index: int
+    chosen_index: Optional[int] = None
+    answer_text: Optional[str] = None
+    time_spent_sec: int = Field(default=0, ge=0)
 
 class SubmitAttemptRequest(BaseModel):
     duration_sec: int = Field(default=0, ge=0)
@@ -100,9 +134,11 @@ class SubmitAttemptRequest(BaseModel):
 class AttemptAnswerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     question_id: int
-    chosen_index: int
+    chosen_index: Optional[int] = None
+    answer_text: Optional[str] = None
     is_correct: bool
-    question: QuestionOut
+    time_spent_sec: int = 0
+    question: QuestionReviewOut
 
 class AttemptOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
