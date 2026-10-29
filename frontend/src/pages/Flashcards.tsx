@@ -74,33 +74,33 @@ export default function Flashcards() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight font-heading text-slate-900">
+          <h1 className="text-3xl font-extrabold tracking-tight font-serif-title text-[#1C1917]">
             Flashcards Deck
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[#78716C]">
             Interactive active-recall cards generated from your notes with SM-2 spaced repetition tracking.
           </p>
         </div>
 
         <Link
           to="/review"
-          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-500/25"
+          className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-[#DC2626] to-[#EF4444] text-white font-semibold text-xs rounded-full shadow-glow-red hover:opacity-95 transition-all hover:scale-[1.01] active:scale-[0.99]"
         >
-          <BookOpen className="w-4 h-4 text-purple-200" />
+          <BookOpen className="w-4 h-4 text-white" />
           <span>Launch Spaced Review Session</span>
         </Link>
       </div>
 
       {/* Filter and Generator Bar */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-[#F3E8D9] shadow-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3 w-full md:w-auto">
-          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+          <label className="text-[11px] font-bold text-[#78716C] uppercase tracking-wider whitespace-nowrap">
             Filter Document:
           </label>
           <select
             value={selectedDocId || ''}
             onChange={(e) => setSelectedDocId(e.target.value ? Number(e.target.value) : undefined)}
-            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className="px-3 py-2 rounded-xl border border-[#F3E8D9] bg-stone-50/50 text-xs font-semibold text-[#1C1917] focus:outline-none focus:ring-2 focus:ring-[#EF4444]/30"
           >
             <option value="">All Documents ({documents.length})</option>
             {documents.map((d) => (
@@ -116,7 +116,7 @@ export default function Flashcards() {
             <select
               value={cardCountToGen}
               onChange={(e) => setCardCountToGen(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
+              className="px-3 py-2 rounded-xl border border-[#F3E8D9] bg-stone-50/50 text-xs font-semibold text-[#1C1917]"
             >
               <option value={5}>Generate 5 Cards</option>
               <option value={10}>Generate 10 Cards</option>
@@ -126,7 +126,7 @@ export default function Flashcards() {
             <button
               onClick={handleGenerateCards}
               disabled={generating}
-              className="flex items-center space-x-1.5 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs rounded-xl border border-purple-200 transition-colors cursor-pointer disabled:opacity-50"
+              className="flex items-center space-x-1.5 px-4 py-2 bg-[#FFE4E6] hover:bg-rose-200 text-rose-800 font-semibold text-xs rounded-full border border-rose-200 transition-colors cursor-pointer disabled:opacity-50"
             >
               {generating ? (
                 <>
@@ -135,7 +135,7 @@ export default function Flashcards() {
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#DC2626]" />
                   <span>AI Generate Flashcards</span>
                 </>
               )}
@@ -147,52 +147,57 @@ export default function Flashcards() {
       {/* Main Flashcard Viewer */}
       {loading ? (
         <div className="py-20 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#DC2626]" />
         </div>
       ) : cards.length > 0 ? (
         <div className="space-y-6">
-          <div className="flex items-center justify-between max-w-xl mx-auto px-2 text-xs font-bold text-slate-500">
+          <div className="flex items-center justify-between max-w-xl mx-auto px-2 text-xs font-bold text-[#78716C]">
             <span>
               Card {currentIndex + 1} of {cards.length}
             </span>
-            <span className="text-purple-600 font-semibold">
+            <span className="text-[#DC2626] font-semibold">
               Tip: Press Space to Flip
             </span>
           </div>
 
-          {/* 3D FlipCard */}
           <FlipCard card={cards[currentIndex]} />
 
           {/* Navigation Controls */}
-          <div className="flex items-center justify-center space-x-4 max-w-xl mx-auto pt-4">
+          <div className="flex items-center justify-center space-x-4 pt-2">
             <button
-              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-              disabled={currentIndex === 0}
-              className="p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              onClick={() => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : cards.length - 1))}
+              className="p-3 bg-white border border-[#F3E8D9] hover:bg-stone-50 text-[#1C1917] rounded-full shadow-soft transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Previous card"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            <span className="text-xs font-mono font-bold text-slate-600 px-4 py-2 bg-slate-100 rounded-lg">
+            <span className="text-xs font-semibold text-[#78716C]">
               {currentIndex + 1} / {cards.length}
             </span>
 
             <button
-              onClick={() => setCurrentIndex((prev) => Math.min(cards.length - 1, prev + 1))}
-              disabled={currentIndex === cards.length - 1}
-              className="p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              onClick={() => setCurrentIndex((prev) => (prev < cards.length - 1 ? prev + 1 : 0))}
+              className="p-3 bg-white border border-[#F3E8D9] hover:bg-stone-50 text-[#1C1917] rounded-full shadow-soft transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Next card"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
       ) : (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-          <Layers className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-800">No Flashcards in this Deck</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Select a document above and click "AI Generate Flashcards" to extract high-yield active-recall cards from your notes.
-          </p>
+        <div className="bg-white rounded-2xl border border-[#F3E8D9] p-12 text-center space-y-4 shadow-soft max-w-lg mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-[#FEF3C7] text-amber-600 flex items-center justify-center mx-auto">
+            <Layers className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-lg font-bold font-serif-title text-[#1C1917]">
+              No Flashcards in this Deck
+            </h3>
+            <p className="text-xs text-[#78716C] leading-relaxed">
+              Select a document above and click &quot;AI Generate Flashcards&quot; to extract high-yield active-recall cards from your notes.
+            </p>
+          </div>
         </div>
       )}
     </div>

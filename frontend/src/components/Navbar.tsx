@@ -38,20 +38,21 @@ export function Navbar({ streak = 0, dueCardsCount = 0 }: NavbarProps) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#F3E8D9]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center space-x-6">
-          <Link to="/dashboard" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5" />
+          <Link to="/dashboard" className="flex items-center space-x-2.5 group">
+            <div className="relative w-8 h-8 rounded-lg bg-[#1C1917] flex items-center justify-center text-white font-bold text-lg shadow-xs group-hover:scale-105 transition-transform">
+              <span>Q</span>
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#DC2626] ring-2 ring-white shadow-xs" />
             </div>
             <div>
-              <span className="text-xl font-bold font-heading bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 bg-clip-text text-transparent">
-                NoteWise AI
+              <span className="text-xl font-bold tracking-tight text-[#1C1917]">
+                QuizForge
               </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
-                Study Loop
+              <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEF3C7] text-amber-900 border border-[#FDE68A]">
+                SM-2 Pro
               </span>
             </div>
           </Link>
@@ -60,21 +61,21 @@ export function Navbar({ streak = 0, dueCardsCount = 0 }: NavbarProps) {
           <nav className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
-              const isActive = location.pathname.startsWith(link.path);
+              const isActive = location.pathname === link.path;
               return (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                     isActive
-                      ? 'bg-purple-50 text-purple-700 font-semibold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      ? 'bg-[#FFE4E6]/80 text-[#DC2626] font-semibold border border-rose-200'
+                      : 'text-[#78716C] hover:text-[#1C1917] hover:bg-stone-50'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-purple-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#DC2626]' : 'text-stone-400'}`} />
                   <span>{link.name}</span>
                   {link.badge !== undefined && (
-                    <span className="ml-1.5 px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-white animate-pulse">
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#DC2626] text-white">
                       {link.badge}
                     </span>
                   )}
@@ -84,42 +85,52 @@ export function Navbar({ streak = 0, dueCardsCount = 0 }: NavbarProps) {
           </nav>
         </div>
 
-        {/* Right Actions */}
+        {/* User / Auth Actions */}
         <div className="flex items-center space-x-3">
-          {/* Study Streak */}
-          <div 
-            title={`${streak} day study streak!`}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/80 text-amber-700 text-xs font-bold shadow-xs"
-          >
-            <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-bounce" />
-            <span>{streak} Day Streak</span>
-          </div>
-
-
-          <div className="h-4 w-px bg-slate-200" />
-
-          {/* User Profile / Auth */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-slate-500 font-medium hidden sm:inline-block max-w-[120px] truncate">
-                {user?.email || 'Student'}
-              </span>
-              <button
-                onClick={logout}
-                title="Log Out"
-                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+            <>
+              {/* Gamification Streak Pill */}
+              <div 
+                className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FEF3C7] border border-[#FDE68A] text-amber-900 text-xs font-semibold"
+                title={`${streak} day study streak!`}
               >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+                <Flame className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" />
+                <span>{streak}d</span>
+              </div>
+
+              {/* User profile avatar / pill */}
+              <div className="flex items-center space-x-2 border-l border-[#F3E8D9] pl-3">
+                <div className="w-7 h-7 rounded-full bg-[#DC2626] text-white flex items-center justify-center font-bold text-xs">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span className="hidden lg:inline-block text-xs font-medium text-[#1C1917] max-w-[120px] truncate">
+                  {user?.email?.split('@')[0] || 'Student'}
+                </span>
+                <button
+                  onClick={logout}
+                  className="p-1.5 text-stone-400 hover:text-[#DC2626] hover:bg-stone-50 rounded-lg transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </>
           ) : (
-            <Link
-              to="/login"
-              className="flex items-center space-x-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Log In</span>
-            </Link>
+            <div className="flex items-center space-x-2">
+              <Link
+                to="/login"
+                className="text-xs font-semibold text-[#78716C] hover:text-[#1C1917] px-3 py-1.5 rounded-full"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                className="flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#DC2626] to-[#EF4444] shadow-glow-red hover:opacity-95 transition-all"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign Up Free</span>
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -49,10 +49,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     loadUserAndOverview();
   }, [location.pathname]);
 
-  const hideNavbar = ['/login', '/register'].includes(location.pathname);
+  const hideNavbar = ['/login', '/register', '/'].includes(location.pathname);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 selection:bg-purple-100 selection:text-purple-700">
+    <div className="min-h-screen flex flex-col bg-[#FFFDf8] text-[#1C1917] selection:bg-[#FFE4E6] selection:text-[#DC2626]">
       {!hideNavbar && (
         <Navbar
           streak={overview?.current_streak_days || 0}
@@ -64,10 +64,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Footer */}
       {!hideNavbar && (
-        <footer className="border-t border-slate-200/80 bg-white/60 backdrop-blur-xs py-6 text-center text-xs text-slate-400">
+        <footer className="border-t border-[#F3E8D9] bg-white/60 backdrop-blur-xs py-6 text-center text-xs text-[#78716C]">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>© {new Date().getFullYear()} NoteWise AI (Study Loop) • Built for active learning & spaced repetition</p>
-            <div className="flex items-center space-x-4 text-slate-500 font-semibold">
+            <p>© {new Date().getFullYear()} QuizForge • Built for active learning & spaced repetition</p>
+            <div className="flex items-center space-x-4 text-[#78716C] font-semibold">
               <a href="http://localhost:8000/docs" target="_blank" rel="noreferrer" className="hover:text-purple-600">
                 FastAPI Swagger
               </a>

@@ -5,11 +5,11 @@ import {
   Play,
   RotateCcw,
   Trash2,
-  Sparkles,
   Calendar,
   Loader2,
   AlertCircle,
   FileQuestion,
+  Plus
 } from 'lucide-react';
 
 export default function MyQuizzes() {
@@ -54,8 +54,8 @@ export default function MyQuizzes() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto py-24 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
-        <p className="text-sm font-semibold text-slate-500">Loading your quizzes...</p>
+        <Loader2 className="w-10 h-10 animate-spin text-[#DC2626]" />
+        <p className="text-sm font-semibold text-[#78716C]">Loading your quizzes...</p>
       </div>
     );
   }
@@ -65,52 +65,51 @@ export default function MyQuizzes() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full">
             Study Library
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-serif-title text-[#1C1917] mt-1.5">
             My Quizzes
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-[#78716C]">
             Take, review, and track performance across all generated assessments.
           </p>
         </div>
 
         <Link
           to="/upload"
-          className="self-start sm:self-auto inline-flex items-center space-x-2 px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-purple-600/20 cursor-pointer"
+          className="self-start sm:self-auto inline-flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-[#DC2626] to-[#EF4444] text-white rounded-full text-xs font-semibold shadow-glow-red hover:opacity-95 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
         >
-          <Sparkles className="w-4 h-4" />
+          <Plus className="w-4 h-4" />
           <span>Create New Quiz</span>
         </Link>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center space-x-2">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-[#FFE4E6] border border-[#FECDD3] text-[#DC2626] text-xs font-semibold flex items-center space-x-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Empty State */}
       {quizzes.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-slate-200/80 p-12 text-center space-y-5 shadow-xs max-w-lg mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mx-auto">
+        <div className="bg-white rounded-2xl border border-[#F3E8D9] p-12 text-center space-y-5 shadow-soft max-w-lg mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-[#FFE4E6] text-[#DC2626] flex items-center justify-center mx-auto">
             <FileQuestion className="w-8 h-8" />
           </div>
           <div className="space-y-1.5">
-            <h3 className="text-lg font-bold font-heading text-slate-900">
+            <h3 className="text-lg font-bold font-serif-title text-[#1C1917]">
               No Quizzes Generated Yet
             </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-[#78716C] leading-relaxed">
               Upload your lecture notes or PDF to automatically generate interactive quizzes, active recall flashcards, and revision guides.
             </p>
           </div>
           <Link
             to="/upload"
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+            className="inline-flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-[#DC2626] to-[#EF4444] text-white rounded-full text-xs font-semibold shadow-glow-red hover:opacity-95"
           >
-            <Sparkles className="w-4 h-4" />
             <span>Upload Document to Start</span>
           </Link>
         </div>
@@ -124,16 +123,16 @@ export default function MyQuizzes() {
             return (
               <div
                 key={quiz.id}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-purple-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-5"
+                className="bg-white rounded-2xl p-6 border border-[#F3E8D9] hover:border-rose-300 shadow-soft hover:shadow-md transition-all flex flex-col justify-between space-y-5"
               >
                 {/* Header */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 capitalize">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-stone-100 text-[#78716C] capitalize">
                         {quiz.difficulty}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FFE4E6] text-rose-800">
                         {quiz.question_type.toUpperCase()}
                       </span>
                     </div>
@@ -141,47 +140,47 @@ export default function MyQuizzes() {
                     <button
                       onClick={() => handleDelete(quiz.id)}
                       disabled={isDeleting}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-40"
+                      className="p-1.5 rounded-lg text-stone-400 hover:text-[#DC2626] hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-40"
                       title="Delete quiz"
                     >
                       {isDeleting ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[#DC2626]" />
                       ) : (
                         <Trash2 className="w-4 h-4" />
                       )}
                     </button>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold font-heading text-slate-900 line-clamp-2">
+                  <h3 className="text-base font-bold text-[#1C1917] line-clamp-2">
                     {quiz.title || `Quiz #${quiz.id}`}
                   </h3>
                 </div>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 text-center">
+                <div className="grid grid-cols-3 gap-2 py-3 border-y border-[#F3E8D9] text-center">
                   <div>
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase">Questions</p>
-                    <p className="text-sm font-bold text-slate-800 font-mono">
+                    <p className="text-[10px] font-semibold text-[#78716C] uppercase">Questions</p>
+                    <p className="text-sm font-bold text-[#1C1917] font-mono">
                       {quiz.num_questions}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase">Attempts</p>
-                    <p className="text-sm font-bold text-slate-800 font-mono">
+                    <p className="text-[10px] font-semibold text-[#78716C] uppercase">Attempts</p>
+                    <p className="text-sm font-bold text-[#1C1917] font-mono">
                       {quiz.attempts_count}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase">Best Score</p>
+                    <p className="text-[10px] font-semibold text-[#78716C] uppercase">Best Score</p>
                     <p
                       className={`text-sm font-bold font-mono ${
                         hasAttempts
                           ? (quiz.best_score_pct || 0) >= 70
-                            ? 'text-emerald-600'
-                            : 'text-amber-600'
-                          : 'text-slate-400'
+                            ? 'text-[#22C55E]'
+                            : 'text-[#F59E0B]'
+                          : 'text-stone-400'
                       }`}
                     >
                       {hasAttempts && quiz.best_score_pct !== null
@@ -193,14 +192,14 @@ export default function MyQuizzes() {
 
                 {/* Footer and Actions */}
                 <div className="flex items-center justify-between pt-1">
-                  <div className="flex items-center space-x-1.5 text-xs text-slate-400">
+                  <div className="flex items-center space-x-1.5 text-xs text-[#78716C]">
                     <Calendar className="w-3.5 h-3.5" />
                     <span>{new Date(quiz.created_at).toLocaleDateString()}</span>
                   </div>
 
                   <button
                     onClick={() => navigate(`/quizzes/${quiz.id}/take`)}
-                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-[#DC2626] to-[#EF4444] text-white rounded-full text-xs font-semibold shadow-glow-red hover:opacity-95 transition-all cursor-pointer"
                   >
                     {hasAttempts ? (
                       <>
